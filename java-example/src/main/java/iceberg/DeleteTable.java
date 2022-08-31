@@ -24,8 +24,8 @@ public class DeleteTable {
         HadoopTables tables = new HadoopTables(conf);
         Schema schema = new Schema(
                 Types.NestedField.required(1, "id", Types.IntegerType.get()),
-                Types.NestedField.required(2, "event_time", Types.LongType.get()),
-                Types.NestedField.required(3, "message", Types.StringType.get())
+                Types.NestedField.optional(2, "event_time", Types.LongType.get()),
+                Types.NestedField.optional(3, "message", Types.StringType.get())
         );
 
         // 不指定namespace和表名，直接指定路径
@@ -107,11 +107,10 @@ public class DeleteTable {
         EqualityDeleteWriter<Record> recordEqualityDeleteWriter = appenderFactory.newEqDeleteWriter(outputFile, fileFormat, null);
         final GenericRecord gRecord = GenericRecord.create(schema);
 
-        final Record record = gRecord.copy("id", 10,
-                "event_time", 1000L,
-                "message", String.format("新值-%d", 0));
+        recordEqualityDeleteWriter.write( gRecord.copy("id", 10));
+        recordEqualityDeleteWriter.write( gRecord.copy("id", 11));
+        recordEqualityDeleteWriter.write( gRecord.copy("id", 12));
 
-        recordEqualityDeleteWriter.write(record);
         recordEqualityDeleteWriter.close();
         DeleteWriteResult deleteWriteResult = recordEqualityDeleteWriter.result();
         List<DeleteFile> deleteFiles = deleteWriteResult.deleteFiles();
